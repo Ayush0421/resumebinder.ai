@@ -58,8 +58,10 @@ function BuilderJourney() {
     const formData = new FormData();
     formData.append('file', uploadedFile);
 
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+
     try {
-      const res = await fetch('http://localhost:8080/api/resume/extract-pdf', {
+      const res = await fetch(`${API_BASE_URL}/api/resume/extract-pdf`, {
         method: 'POST',
         body: formData
       });
@@ -88,7 +90,8 @@ function BuilderJourney() {
     }, 1500);
 
     try {
-      const res = await fetch('http://localhost:8080/api/resume/generate', {
+      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+      const res = await fetch(`${API_BASE_URL}/api/resume/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ jd, rawResume })
