@@ -215,7 +215,7 @@ function BuilderJourney() {
                 </div>
                 <h3 style={{marginTop: '20px'}}>Actionable Advice</h3>
                 <ul className="advice-list">
-                  {result.improvementSuggestions?.map((s, i) => <li key={i}>{s}</li>)}
+                  {result.improvementSuggestions?.map((s, i) => <li key={i} dangerouslySetInnerHTML={{ __html: s }} />)}
                 </ul>
               </div>
 
