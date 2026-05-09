@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Resume</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/dreampulse/computer-modern-web-font@master/fonts.css">
+    <style>
+        /* Exact LaTeX / ATS Resume Layout CSS */
+        @page {
+            size: A4;
+            margin: 0;
+        }
+        body {
+            font-family: "Computer Modern Serif", serif;
+            font-size: 10pt;
+            color: #000;
+            line-height: 1.25;
+            margin: 0;
+            padding: 0.3in 0.5in;
+            max-width: 8.5in;
+            margin-left: auto;
+            margin-right: auto;
+            box-sizing: border-box;
+        }
+
+        /* Header */
+        .resume-header {
+            text-align: center;
+            margin-bottom: 12px;
+        }
+        .resume-header h1 {
+            font-size: 24pt;
+            font-weight: normal;
+            margin: 0 0 4px 0;
+        }
+        .contact-info {
+            font-size: 11pt;
+        }
+
+        /* Sections */
+        .section {
+            margin-bottom: 12px;
+        }
+        .section-title {
+            font-size: 12pt;
+            font-weight: bold;
+            border-bottom: 1.5px solid #000;
+            margin-bottom: 6px;
+            margin-top: 8px;
+            padding-bottom: 2px;
+        }
+
+        /* Item blocks (Experience, Projects, Education) */
+        .item-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+        }
+        .item-title {
+            font-weight: bold;
+        }
+        .item-subtitle {
+            font-style: italic;
+        }
+        .item-date {
+            font-size: 10.5pt;
+        }
+        .item-right {
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        /* Bullets */
+        ul {
+            margin: 4px 0 8px 16px;
+            padding: 0;
+            list-style-type: disc;
+        }
+        li {
+            margin-bottom: 2px;
+            text-align: justify;
+        }
+
+        /* Technologies Inline Layout */
+        .tech-category {
+            margin-bottom: 2px;
+        }
+        .tech-category span.category-name {
+            font-weight: bold;
+        }
+
+        /* Links */
+        a {
+            color: #000;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <div class="resume-header">
+        <h1 th:text="${data.name}">Ayush Gupta</h1>
+        <div class="contact-info" th:utext="${data.contactInfo}">ayush2101@gmail.com | +91 6266309831 | linkedin.com/in/tsmeayushgupta | Hyderabad</div>
+    </div>
+
+    <!-- Experience -->
+    <div class="section" th:if="${data.experience != null and !data.experience.isEmpty()}">
+        <div class="section-title">Experience</div>
+        <div class="item-block" th:each="exp : ${data.experience}">
+            <div class="item-row">
+                <div>
+                    <span class="item-title" th:text="${exp.title}">Software Engineer II</span>, 
+                    <span class="item-company" th:text="${exp.company}">J.P. Morgan Chase</span>
+                </div>
+                <div class="item-right item-date" th:text="${exp.duration}">June 2021 - Present</div>
+            </div>
+            <ul>
+                <li th:each="bullet : ${exp.bullets}" th:utext="${bullet}">Developed enhancements...</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Technologies -->
+    <div class="section" th:if="${data.technologies != null and !data.technologies.isEmpty()}">
+        <div class="section-title">Technologies</div>
+        <div class="tech-category" th:each="tech : ${data.technologies}">
+            <span class="category-name" th:text="${tech.category + ':'}">Languages:</span>
+            <span th:utext="${tech.skills}">Java, JavaScript, Python, SQL, HTML, CSS</span>
+        </div>
+    </div>
+
+    <!-- Projects -->
+    <div class="section" th:if="${data.projects != null and !data.projects.isEmpty()}">
+        <div class="section-title">Projects</div>
+        <div class="item-block" th:each="proj : ${data.projects}">
+            <div class="item-row">
+                <div class="item-title" th:text="${proj.title}">Connectify</div>
+                <div class="item-right item-date" th:text="${proj.duration}"></div>
+            </div>
+            <ul>
+                <li th:each="bullet : ${proj.bullets}" th:utext="${bullet}">Designed and built...</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Achievements -->
+    <div class="section" th:if="${data.achievements != null and !data.achievements.isEmpty()}">
+        <div class="section-title">Achievements</div>
+        <ul>
+            <li th:each="achieve : ${data.achievements}" th:utext="${achieve}">Published research...</li>
+        </ul>
+    </div>
+
+    <!-- Education -->
+    <div class="section" th:if="${data.education != null and !data.education.isEmpty()}">
+        <div class="section-title">Education</div>
+        <div class="item-block" th:each="edu : ${data.education}">
+            <div class="item-row">
+                <div class="item-title" th:text="${edu.institution}">SRM University, Chennai</div>
+                <div class="item-right item-date" th:text="${edu.duration}">2017 - 2021</div>
+            </div>
+            <div class="item-row">
+                <div>
+                    <span th:text="${edu.degree}">Bachelor of Computer Engineering</span>
+                </div>
+                <div class="item-right" th:if="${edu.cgpa != null}">
+                    <span th:text="'CGPA: ' + ${edu.cgpa}">CGPA: 9.43 / 10</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
