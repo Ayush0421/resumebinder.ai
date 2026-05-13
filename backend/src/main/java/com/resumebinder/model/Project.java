@@ -1,4 +1,5 @@
 package com.resumebinder.model;
+
 import lombok.Data;
 import java.util.List;
 

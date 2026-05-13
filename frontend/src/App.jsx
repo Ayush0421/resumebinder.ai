@@ -45,6 +45,9 @@ function BuilderJourney() {
   const [file, setFile] = useState(null);
   const [rawResume, setRawResume] = useState("");
   const [jd, setJd] = useState("");
+  const [jdUrl, setJdUrl] = useState("");
+  const [jdInputMode, setJdInputMode] = useState("link");
+  const [isFetchingJd, setIsFetchingJd] = useState(false);
   const [loadingHook, setLoadingHook] = useState("");
   const [result, setResult] = useState(null);
   
@@ -108,6 +111,27 @@ function BuilderJourney() {
     }
   };
 
+  const handleFetchJd = async () => {
+    if (!jdUrl) return;
+    setIsFetchingJd(true);
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/resume/extract-url`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: jdUrl })
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      setJd(data.jdText);
+      setJdInputMode("text"); // Auto-switch to text area so user can review the extracted JD
+    } catch (err) {
+      alert("Error fetching JD from URL: " + err.message);
+    } finally {
+      setIsFetchingJd(false);
+    }
+  };
+
   const handlePrint = () => {
     if (!result || !result.html) return;
     const printWindow = window.open('', '_blank');
@@ -158,13 +182,57 @@ function BuilderJourney() {
           >
             <div className="success-badge"><CheckCircle2 size={16} /> PDF Extracted</div>
             <h2>Target Job Description</h2>
-            <p>Paste the JD so our AI can align your experiences perfectly.</p>
-            <textarea 
-              className="jd-box"
-              placeholder="Requirements: 3+ years Java, React..."
-              value={jd}
-              onChange={e => setJd(e.target.value)}
-            />
+            <p>Paste the JD link or raw text so our AI can align your experiences perfectly.</p>
+            
+            <div className="input-mode-toggle" style={{ display: 'flex', gap: '20px', marginBottom: '15px', color: '#ccc', fontSize: '14px' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                <input 
+                  type="radio" 
+                  name="jdInputMode" 
+                  value="link" 
+                  checked={jdInputMode === 'link'} 
+                  onChange={() => setJdInputMode('link')} 
+                />
+                Paste Job Link
+              </label>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                <input 
+                  type="radio" 
+                  name="jdInputMode" 
+                  value="text" 
+                  checked={jdInputMode === 'text'} 
+                  onChange={() => setJdInputMode('text')} 
+                />
+                Paste Manual Text
+              </label>
+            </div>
+
+            {jdInputMode === 'link' ? (
+              <div className="url-fetcher" style={{ display: 'flex', gap: '10px', marginBottom: '15px' }}>
+                <input 
+                  type="text" 
+                  placeholder="Paste Job URL to auto-extract..." 
+                  value={jdUrl}
+                  onChange={e => setJdUrl(e.target.value)}
+                  style={{ flex: 1, padding: '12px', borderRadius: '8px', border: '1px solid #333', background: '#111', color: 'white', fontSize: '14px' }}
+                />
+                <button 
+                  onClick={handleFetchJd} 
+                  disabled={!jdUrl || isFetchingJd}
+                  style={{ padding: '10px 20px', borderRadius: '8px', background: isFetchingJd ? '#555' : '#3b82f6', color: 'white', border: 'none', cursor: isFetchingJd || !jdUrl ? 'not-allowed' : 'pointer', fontWeight: 'bold' }}
+                >
+                  {isFetchingJd ? "Extracting..." : "Extract"}
+                </button>
+              </div>
+            ) : (
+              <textarea 
+                className="jd-box"
+                placeholder="Requirements: 3+ years Java, React..."
+                value={jd}
+                onChange={e => setJd(e.target.value)}
+              />
+            )}
+
             <button className="primary-btn" onClick={handleGenerate} disabled={!jd}>
               Analyze & Rebuild
             </button>

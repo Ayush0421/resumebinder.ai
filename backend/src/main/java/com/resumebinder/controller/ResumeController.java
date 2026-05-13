@@ -46,4 +46,22 @@ public class ResumeController {
             return ResponseEntity.internalServerError().body(error);
         }
     }
+
+    @PostMapping("/extract-url")
+    public ResponseEntity<?> extractJobDescription(@RequestBody Map<String, String> payload) {
+        try {
+            String url = payload.get("url");
+            if (url == null || url.isEmpty()) {
+                throw new IllegalArgumentException("URL is required");
+            }
+            String jdText = geminiService.extractJobDescriptionFromUrl(url);
+            Map<String, String> response = new HashMap<>();
+            response.put("jdText", jdText);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", e.getMessage());
+            return ResponseEntity.internalServerError().body(error);
+        }
+    }
 }

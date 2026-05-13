@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8">
     <title>Resume</title>
@@ -10,6 +11,7 @@
             size: A4;
             margin: 0;
         }
+
         body {
             font-family: "Computer Modern Serif", serif;
             font-size: 10pt;
@@ -28,11 +30,13 @@
             text-align: center;
             margin-bottom: 8px;
         }
+
         .resume-header h1 {
             font-size: 24pt;
             font-weight: normal;
             margin: 0 0 4px 0;
         }
+
         .contact-info {
             font-size: 11pt;
         }
@@ -41,6 +45,7 @@
         .section {
             margin-bottom: 8px;
         }
+
         .section-title {
             font-size: 12pt;
             font-weight: bold;
@@ -56,15 +61,19 @@
             justify-content: space-between;
             align-items: baseline;
         }
+
         .item-title {
             font-weight: bold;
         }
+
         .item-subtitle {
             font-style: italic;
         }
+
         .item-date {
             font-size: 10.5pt;
         }
+
         .item-right {
             text-align: right;
             white-space: nowrap;
@@ -76,6 +85,7 @@
             padding: 0;
             list-style-type: disc;
         }
+
         li {
             margin-bottom: 1px;
             text-align: justify;
@@ -85,6 +95,7 @@
         .tech-category {
             margin-bottom: 2px;
         }
+
         .tech-category span.category-name {
             font-weight: bold;
         }
@@ -94,17 +105,20 @@
             color: #000;
             text-decoration: none;
         }
+
         a:hover {
             text-decoration: underline;
         }
     </style>
 </head>
+
 <body>
 
     <!-- Header -->
     <div class="resume-header">
         <h1 th:text="${data.name}">Ayush Gupta</h1>
-        <div class="contact-info" th:utext="${data.contactInfo}">ayush2101@gmail.com | +91 6266309831 | linkedin.com/in/tsmeayushgupta | Hyderabad</div>
+        <div class="contact-info" th:utext="${data.contactInfo}">ayush2101@gmail.com | +91 6266309831 |
+            linkedin.com/in/tsmeayushgupta | Hyderabad</div>
     </div>
 
     <!-- Experience -->
@@ -113,7 +127,7 @@
         <div class="item-block" th:each="exp : ${data.experience}">
             <div class="item-row">
                 <div>
-                    <span class="item-title" th:text="${exp.title}">Software Engineer II</span>, 
+                    <span class="item-title" th:text="${exp.title}">Software Engineer II</span>,
                     <span class="item-company" th:text="${exp.company}">J.P. Morgan Chase</span>
                 </div>
                 <div class="item-right item-date" th:text="${exp.duration}">June 2021 - Present</div>
@@ -175,4 +189,5 @@
     </div>
 
 </body>
+
 </html>

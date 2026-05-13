@@ -9,6 +9,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.jsoup.Jsoup;
 
 import java.util.HashMap;
 import java.util.List;
@@ -30,28 +31,44 @@ public class GeminiService {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
-        String systemPrompt = "You are an intelligent Resume Builder system that generates a highly ATS-optimized, ONE-PAGE resume tailored to a given Job Description (JD).\n" +
-                "Maximize ATS score, keyword match, and recruiter readability. Your primary goal is to HACK the ATS by heavily weaving in required keywords.\n\n" +
+        String systemPrompt = "You are an intelligent Resume Builder system that generates a highly ATS-optimized, ONE-PAGE resume tailored to a given Job Description (JD).\n"
+                +
+                "Maximize ATS score, keyword match, and recruiter readability. Your primary goal is to HACK the ATS by heavily weaving in required keywords.\n\n"
+                +
                 "STRICT CONSTRAINTS:\n" +
                 "- DO NOT invent completely fake companies, roles, or degrees.\n" +
-                "- MINDSET: Act as a rigorous Product-Based Company (PBC) HR recruiter. Look for high-impact keywords, concrete metrics, and strong presentation.\n" +
-                "- WEAK WORDS: ABSOLUTELY DO NOT use weak words like 'familiarity', 'exposure', 'basic understanding', etc. Present all skills confidently.\n" +
-                "- COMPANY CONTEXT: Tailor the resume strictly based on the provided Job Description and Target Company. If you lack context or details about the company, do not drastically alter the order or structure of the candidate's core experiences.\n" +
-                "- FORMATTING: Use HTML <b> and </b> tags to bold the important keywords you inject or highlight. DO NOT use markdown (like **) for bolding. DO NOT bold individual skills in the Technologies section.\n" +
-                "- LINKS: For the contactInfo field, format the Email and LinkedIn as actual HTML anchor tags (e.g., <a href=\"mailto:email@example.com\">email@example.com</a> | Phone | <a href=\"https://linkedin.com/in/username\">linkedin.com/in/username</a> | Location).\n" +
-                "- ATS OPTIMIZATION IS PARAMOUNT: You MUST naturally integrate and weave the JD's missing keywords (like specific tools, skills, or frameworks) into the candidate's existing experience and projects where contextually plausible. DO NOT leave critical JD keywords unmatched if they can be blended into existing points.\n" +
-                "- You MUST deeply ANALYZE the raw text against the JD. DO NOT just copy the input! REWRITE, REPHRASE, and REORDER bullet points to aggressively target the JD's exact terminology.\n" +
-                "- TRUNCATE and REMOVE irrelevant experiences, older jobs, or weak bullet points so the entire output STRICTLY fits on a single page. Keep it under 450 words total.\n" +
+                "- DATES: DO NOT hallucinate or change the dates of any experiences, projects, or education. Keep all dates EXACTLY as they appear in the raw resume.\n" +
+                "- MINDSET: Act as a rigorous Product-Based Company (PBC) HR recruiter. Look for high-impact keywords, concrete metrics, and strong presentation.\n"
+                +
+                "- WEAK WORDS: ABSOLUTELY DO NOT use weak words like 'familiarity', 'exposure', 'basic understanding', etc. Present all skills confidently.\n"
+                +
+                "- COMPANY CONTEXT: Tailor the resume strictly based on the provided Job Description and Target Company. If you lack context or details about the company, do not drastically alter the order or structure of the candidate's core experiences.\n"
+                +
+                "- FORMATTING: Use HTML <b> and </b> tags to bold the important keywords you inject or highlight. DO NOT use markdown (like **) for bolding. DO NOT bold individual skills in the Technologies section.\n"
+                +
+                "- LINKS: For the contactInfo field, format the Email and LinkedIn as actual HTML anchor tags (e.g., <a href=\"mailto:email@example.com\">email@example.com</a> | Phone | <a href=\"https://linkedin.com/in/username\">linkedin.com/in/username</a> | Location).\n"
+                +
+                "- ATS OPTIMIZATION IS PARAMOUNT: You MUST naturally integrate and weave the JD's missing keywords (like specific tools, skills, or frameworks) into the candidate's existing experience and projects where contextually plausible. DO NOT leave critical JD keywords unmatched if they can be blended into existing points.\n"
+                +
+                "- You MUST deeply ANALYZE the raw text against the JD. DO NOT just copy the input! REWRITE, REPHRASE, and REORDER bullet points to aggressively target the JD's exact terminology.\n"
+                +
+                "- TRUNCATE and REMOVE irrelevant experiences, older jobs, or weak bullet points so the entire output STRICTLY fits on a single page. Keep it under 450 words total.\n"
+                +
+                "- DO NOT remove projects or achievements that are already present in the raw resume. Instead, modify, rephrase, and enhance them to make them more ATS-friendly and weave in relevant keywords. Retain their presence.\n"
+                +
                 "- Output MUST be a structured JSON tightly matching this exact mapping:\n" +
                 "{\n" +
                 "  \"resumeData\": {\n" +
                 "    \"name\": \"Full Name\",\n" +
                 "    \"contactInfo\": \"Email | Phone | LinkedIn | Location\",\n" +
-                "    \"experience\": [{ \"title\": \"Role\", \"company\": \"Company\", \"duration\": \"Date - Date\", \"bullets\": [\"Action...\", \"Result...\"] }],\n" +
+                "    \"experience\": [{ \"title\": \"Role\", \"company\": \"Company\", \"duration\": \"Date - Date\", \"bullets\": [\"Action...\", \"Result...\"] }],\n"
+                +
                 "    \"technologies\": [{ \"category\": \"Languages\", \"skills\": \"Java, Python\" }],\n" +
-                "    \"projects\": [{ \"title\": \"Project Name\", \"duration\": \"Date\", \"bullets\": [\"Built X...\"] }],\n" +
+                "    \"projects\": [{ \"title\": \"Project Name\", \"duration\": \"Date\", \"bullets\": [\"Built X...\"] }],\n"
+                +
                 "    \"achievements\": [\"Award 1\", \"Award 2\"],\n" +
-                "    \"education\": [{ \"institution\": \"Univ Name\", \"degree\": \"B.S.\", \"cgpa\": \"3.9\", \"duration\": \"2019-2023\" }]\n" +
+                "    \"education\": [{ \"institution\": \"Univ Name\", \"degree\": \"B.S.\", \"cgpa\": \"3.9\", \"duration\": \"2019-2023\" }]\n"
+                +
                 "  },\n" +
                 "  \"atsScore\": 85,\n" +
                 "  \"keywordMatchAnalysis\": {\n" +
@@ -66,7 +83,7 @@ public class GeminiService {
             String userMessage = "Job Description:\\n" + jd + "\\n\\nCandidate Raw Resume Text:\\n" + rawResume;
 
             Map<String, Object> requestBody = new HashMap<>();
-            
+
             // System instructions
             Map<String, Object> systemInstruction = new HashMap<>();
             Map<String, Object> systemParts = new HashMap<>();
@@ -89,13 +106,14 @@ public class GeminiService {
             requestBody.put("contents", List.of(userContent));
 
             HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
-            
+
             int maxRetries = 3;
             long backoffMillis = 2000;
 
             for (int attempt = 1; attempt <= maxRetries; attempt++) {
                 try {
-                    ResponseEntity<Map> response = restTemplate.postForEntity(chatUrl + "?key=" + apiKey, entity, Map.class);
+                    ResponseEntity<Map> response = restTemplate.postForEntity(chatUrl + "?key=" + apiKey, entity,
+                            Map.class);
                     Map<String, Object> body = response.getBody();
 
                     if (body != null && body.containsKey("candidates")) {
@@ -104,14 +122,19 @@ public class GeminiService {
                             Map<String, Object> content = (Map<String, Object>) candidates.get(0).get("content");
                             List<Map<String, Object>> parts = (List<Map<String, Object>>) content.get("parts");
                             String jsonText = (String) parts.get(0).get("text");
+                            // Intercept and fix markdown bolding to HTML
+                            jsonText = jsonText.replaceAll("\\*\\*(.*?)\\*\\*", "<b>$1</b>");
                             return objectMapper.readValue(jsonText, GeminiResponse.class);
                         }
                     }
                     throw new RuntimeException("No valid response generated.");
                 } catch (Exception e) {
-                    boolean isRetryable = e.getMessage() != null && (e.getMessage().contains("503") || e.getMessage().contains("429") || e.getMessage().contains("Service Unavailable") || e.getMessage().contains("Too Many Requests"));
+                    boolean isRetryable = e.getMessage() != null && (e.getMessage().contains("503")
+                            || e.getMessage().contains("429") || e.getMessage().contains("Service Unavailable")
+                            || e.getMessage().contains("Too Many Requests"));
                     if (isRetryable && attempt < maxRetries) {
-                        System.err.println("API overload detected (503/429). Retrying in " + backoffMillis + "ms... (Attempt " + attempt + " of " + maxRetries + ")");
+                        System.err.println("API overload detected (503/429). Retrying in " + backoffMillis
+                                + "ms... (Attempt " + attempt + " of " + maxRetries + ")");
                         try {
                             Thread.sleep(backoffMillis);
                         } catch (InterruptedException ie) {
@@ -127,6 +150,62 @@ public class GeminiService {
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException("API Call Failed: " + e.getMessage());
+        }
+    }
+
+    public String extractJobDescriptionFromUrl(String url) {
+        try {
+            // Fetch clean markdown text from the URL using Jina AI
+            String jinaUrl = "https://r.jina.ai/" + url;
+            String rawText = Jsoup.connect(jinaUrl)
+                                  .ignoreContentType(true)
+                                  .timeout(60000)
+                                  .get()
+                                  .body()
+                                  .text();
+
+            // Use Gemini to clean and extract only the job description
+            String prompt = "You are an expert at extracting Job Descriptions from raw web page text.\n"
+                    + "Extract only the core Job Description (role title, responsibilities, requirements, qualifications, and company overview) from the following scraped text.\n"
+                    + "Remove all unrelated content such as navigation menus, footers, cookie policies, external links, or other boilerplate text.\n"
+                    + "Return the cleaned text clearly formatted.\n\n"
+                    + "Raw Text:\n" + rawText;
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+
+            Map<String, Object> requestBody = new HashMap<>();
+            
+            // User content
+            Map<String, Object> userContent = new HashMap<>();
+            userContent.put("role", "user");
+            Map<String, Object> userPart = new HashMap<>();
+            userPart.put("text", prompt);
+            userContent.put("parts", List.of(userPart));
+            
+            requestBody.put("contents", List.of(userContent));
+
+            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
+
+            ResponseEntity<Map> response = restTemplate.postForEntity(chatUrl + "?key=" + apiKey, entity, Map.class);
+            Map<String, Object> body = response.getBody();
+
+            if (body != null && body.containsKey("candidates")) {
+                List<Map<String, Object>> candidates = (List<Map<String, Object>>) body.get("candidates");
+                if (!candidates.isEmpty()) {
+                    Map<String, Object> content = (Map<String, Object>) candidates.get(0).get("content");
+                    List<Map<String, Object>> parts = (List<Map<String, Object>>) content.get("parts");
+                    String extractedText = (String) parts.get(0).get("text");
+                    System.out.println("\n========== EXTRACTED JOB DESCRIPTION ==========\n");
+                    System.out.println(extractedText);
+                    System.out.println("\n===============================================\n");
+                    return extractedText;
+                }
+            }
+            throw new RuntimeException("Could not extract text via Gemini.");
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Failed to extract Job Description from URL: " + e.getMessage());
         }
     }
 }
